@@ -1,0 +1,85 @@
+using System;
+using System.IO;
+using System.Security;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace CSEncryptDecrypt
+{
+  /// <요약>
+  /// Class1에 대한 요약 설명.
+  /// </요약>
+  class Class1
+  {
+    //64비트 혹은 8바이트여야 함.
+    private const string sSecretKey = "Password"; 
+
+    static void Main(string[] args)
+    {
+      EncryptFile("c:\\temp\\test.txt", 
+        "c:\\temp\\Encrypted.txt", 
+        sSecretKey);
+
+      DecryptFile("c:\\temp\\Encrypted.txt", 
+        "c:\\temp\\Decrypted.txt", 
+        sSecretKey);
+    } 
+
+    static void EncryptFile(string sInputFilename,
+                            string sOutputFilename, 
+                            string sKey) 
+    {
+      FileStream fsInput = new FileStream(sInputFilename, 
+                                          FileMode.Open, 
+                                          FileAccess.Read);
+
+      FileStream fsEncrypted = new FileStream(sOutputFilename, 
+                                              FileMode.Create, 
+                                              FileAccess.Write);
+      DESCryptoServiceProvider DES = new DESCryptoServiceProvider();
+      DES.Key = ASCIIEncoding.ASCII.GetBytes(sKey);
+      DES.IV = ASCIIEncoding.ASCII.GetBytes(sKey);
+      ICryptoTransform desencrypt = DES.CreateEncryptor();
+      CryptoStream cryptostream = new CryptoStream(fsEncrypted, 
+                                                   desencrypt, 
+                                                   CryptoStreamMode.Write); 
+
+      byte[] bytearrayinput = new byte[fsInput.Length];
+      fsInput.Read(bytearrayinput, 0, bytearrayinput.Length);
+      cryptostream.Write(bytearrayinput, 0, bytearrayinput.Length);
+      cryptostream.Close();
+      fsInput.Close();
+      fsEncrypted.Close();
+    }
+
+    static void DecryptFile(string sInputFilename, 
+                            string sOutputFilename,
+                            string sKey)
+    {
+      DESCryptoServiceProvider DES = new DESCryptoServiceProvider();
+      //공급자에게는 64비트 키와 IV가 필요.
+      //DES 알고리즘에 대한 비밀 키를 설정.
+      DES.Key = ASCIIEncoding.ASCII.GetBytes(sKey);
+      //초기화 벡터 설정.
+      DES.IV = ASCIIEncoding.ASCII.GetBytes(sKey);
+
+      //암호화된 파일을 복구할 수 있음.
+      FileStream fsread = 새로운 FileStream(sInputFilename,
+                                         FileMode.Open, 
+                                         FileAccess.Read);
+      //DES 인스턴스에서 DES 암호 해독기를 만듦.
+      ICryptoTransform desdecrypt = DES.CreateDecryptor();
+      //읽고 수행하도록 설정된 암호화 스트림 생성.
+      //들어오는 바이트에 대한 DES 암호 해독 변환.
+      CryptoStream cryptostreamDecr = new CryptoStream(fsread, 
+                                                       desdecrypt,
+                                                    CryptoStreamMode.Read);
+      //복호화된 파일 내용 출력.
+      StreamWriter fsDecrypted = new StreamWriter(sOutputFilename);
+      fsDecrypted.Write(new StreamReader(cryptostreamDecr).ReadToEnd());
+      fsDecrypted.Flush();
+      fsDecrypted.Close();
+    } 
+
+  }
+}
