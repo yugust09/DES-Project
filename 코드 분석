@@ -1,0 +1,49 @@
+private string PassWord = "암호(8byte)";
+//-> “ ”안에 암호화할 때 사용할 암호키를 지정한다.
+//private -> 선언된 클래스 또는 구조체의 본문 내에서만 접근 가능.
+//=> private를 이용하여 구조체 내에서만 접근이 가능하도록 하고, PassWord 문자열에 8Byte의 암호키를 선언한다.
+ 
+
+public void EncryptFile(string ReadFilename, string WriteFilename)  //파일 암호화
+//public -> 접근에 대한 제한이 없음.
+//void -> 리턴할 값이 없음.
+//=> EncryptFile(암호화파일)함수에 다른 곳에서 값을 받아올 문자열 ReadFilename과 WriteFilename을 선언한다.
+{
+    FileStream fsInput = new FileStream(ReadFilename, FileMode.Open, FileAccess.Read,FileShare.None);         
+    FileStream fsEncrypted = new FileStream(WriteFilename, FileMode.Create, FileAccess.Write);
+    //=> 대상 파일에 대한 읽기/쓰기를 처리하는 입력 및 출력 FileStream 개체를 생성한다.
+
+    DESCryptoServiceProvider DES = new DESCryptoServiceProvider();
+    //=> 파일에 사용할 실제 암호화 및 해독 기술을 나타내는 DESCryptoServiceProvider 클래스의 DES를 선언한다.
+    DES.Key = ASCIIEncoding.ASCII.GetBytes(key);
+    DES.IV = ASCIIEncoding.ASCII.GetBytes(key);
+
+    ICryptoTransform Encrypt = DES.CreateEncryptor();
+    CryptoStream cryptostream = new CryptoStream(fsEncrypted, Encrypt, CryptoStreamMode.Write);
+
+    byte[] bytearrayinput = new byte[fsInput.Length];
+    fsInput.Read(bytearrayinput, 0, bytearrayinput.Length);
+
+    cryptostream.Write(bytearrayinput, 0, bytearrayinput.Length);
+    fsEncrypted.Flush();
+    cryptostream.Close();
+    fsInput.Close();
+    fsEncrypted.Close();
+}
+
+public void DecryptFile(string ReadFilename, string WriteFilename)//파일 복호화
+{
+    DESCryptoServiceProvider DES = new DESCryptoServiceProvider();
+
+    DES.Key = ASCIIEncoding.ASCII.GetBytes(key);
+    DES.IV = ASCIIEncoding.ASCII.GetBytes(key);
+
+    FileStream fsread = new FileStream(ReadFilename, FileMode.Open, FileAccess.ReadWrite,FileShare.ReadWrite);
+    ICryptoTransform Decrypt = DES.CreateDecryptor();
+    CryptoStream cryptostreamDecr = new CryptoStream(fsread, Decrypt, CryptoStreamMode.Read);
+
+    StreamWriter fsDecrypted = new StreamWriter(WriteFilename);
+    fsDecrypted.Write(new StreamReader(cryptostreamDecr).ReadToEnd());
+    fsDecrypted.Flush();
+    fsDecrypted.Close();
+}
