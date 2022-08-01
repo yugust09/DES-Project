@@ -9,6 +9,7 @@ namespace CSEncryptDecrypt
   /// <요약>
   /// Class1에 대한 요약 설명.
   /// </요약>
+  
   class Class1
   {
     //64비트 혹은 8바이트여야 함.
